@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, World!");
+  res.send("Welcome to the PH Health Care Backend API!");
 });
 
 export default app;
