@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import express, { Application, Request, Response } from "express";
 import { prisma } from "./app/lib/prisma";
 import { SpecialtyRoutes } from "./app/module/specialty/specialty.route";
 import { AuthRotes } from "./app/module/auth/auth.route";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
+import { notFound } from "./app/middleware/notFound";
 
 const app: Application = express();
 
@@ -28,5 +31,8 @@ app.get("/", async (req: Request, res: Response) => {
     data: specialty,
   });
 });
+
+app.use(globalErrorHandler);
+app.use(notFound);
 
 export default app;
