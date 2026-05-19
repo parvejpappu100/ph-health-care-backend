@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express, { Application, Request, Response } from "express";
 import { prisma } from "./app/lib/prisma";
-import { SpecialtyRoutes } from "./app/module/specialty/specialty.route";
-import { AuthRotes } from "./app/module/auth/auth.route";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
+import { IndexRoutes } from "./app/routes";
 
 const app: Application = express();
 
@@ -15,8 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Routes
-app.use("/api/v1/auth", AuthRotes);
-app.use("/api/v1/specialties", SpecialtyRoutes);
+app.use("/api/v1",IndexRoutes);
 
 // Basic route
 app.get("/", async (req: Request, res: Response) => {
