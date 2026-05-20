@@ -6,24 +6,26 @@ import {
   createDoctorZodSchema,
   createSuperAdminValidationSchema,
 } from "./user.validation";
+import { checkAuth } from "../../middleware/checkAuth";
+import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
 router.post(
-  "/create-doctor",
+  "/create-doctor",checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   validateRequest(createDoctorZodSchema),
   UserController.createDoctor,
 );
 router.post(
-  "/create-admin",
+  "/create-admin",checkAuth(Role.SUPER_ADMIN),
   validateRequest(createAdminValidationSchema),
   UserController.createAdmin,
 );
 
 router.post(
   "/create-super-admin",
-  validateRequest(createSuperAdminValidationSchema
-  ),
+  checkAuth(Role.SUPER_ADMIN),
+  validateRequest(createSuperAdminValidationSchema),
   UserController.createSuperAdmin,
 );
 

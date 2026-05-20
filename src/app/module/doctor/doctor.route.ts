@@ -11,5 +11,10 @@ router.get(
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.DOCTOR),
   DoctorController.getDoctorById,
 );
+router.patch(
+  "/:id",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.DOCTOR),
+  DoctorController.updateDoctor,
+);
 
 export const DoctorRoutes = router;
