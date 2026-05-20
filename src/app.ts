@@ -4,6 +4,7 @@ import { prisma } from "./app/lib/prisma";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { IndexRoutes } from "./app/routes";
+import cookieParser from "cookie-parser";
 
 const app: Application = express();
 
@@ -12,9 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
-app.use("/api/v1",IndexRoutes);
+app.use("/api/v1", IndexRoutes);
 
 // Basic route
 app.get("/", async (req: Request, res: Response) => {
