@@ -3,6 +3,7 @@ import status from "http-status";
 import { catchAsync } from "../../shared/catchAsync";
 import { sendResponse } from "../../shared/sendResponse";
 import { UserService } from "./user.service";
+import { DoctorService } from "../doctor/doctor.service";
 
 const createDoctor = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -33,7 +34,7 @@ const createSuperAdmin = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const result = await UserService.createSuperAdmin(payload);
 
-    sendResponse(res, {
+  sendResponse(res, {
     httpStatusCode: status.CREATED,
     success: true,
     message: "Super Admin created successfully",
