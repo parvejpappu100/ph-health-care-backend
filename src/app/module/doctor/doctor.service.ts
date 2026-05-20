@@ -75,7 +75,7 @@ const updateDoctor = async (id: string, payload: IUpdateDoctor) => {
     throw new AppError(status.NOT_FOUND, "Doctor not found");
   }
 
-  
+
 
   // Separate specialties from doctor data
   const { specialties, ...doctorData } = payload;
@@ -135,8 +135,30 @@ const updateDoctor = async (id: string, payload: IUpdateDoctor) => {
   };
 };
 
+const softDeleteDoctor = async (id: string) => {
+  const existingDoctor = await prisma.doctor.findUnique({
+    where: { id },
+  });
+
+  if (!existingDoctor) {
+    throw new AppError(status.NOT_FOUND, "Doctor not found");
+  }
+
+  if(existingDoctor.isDeleted) {
+    throw new AppError(status.BAD_REQUEST, "Doctor is already deleted");
+  }
+
+  const deletedDoctor = await prisma.doctor.update({
+    where: { id },
+    data: { isDeleted: true, deletedAt: new Date() },
+  });
+
+  return deletedDoctor;
+};
+
 export const DoctorService = {
   getAllDoctors,
   getDoctorById,
   updateDoctor,
+  softDeleteDoctor,
 };
