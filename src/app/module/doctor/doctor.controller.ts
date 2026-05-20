@@ -51,7 +51,11 @@ const softDeleteDoctor = catchAsync(async (req: Request, res: Response) => {
     httpStatusCode: status.OK,
     success: true,
     message: "Doctor deleted successfully",
-    data: result,
+    data: {
+        id: result.id,
+        isDeleted: result.isDeleted,
+        deletedAt: result.deletedAt,
+    },
   });
 });
 
