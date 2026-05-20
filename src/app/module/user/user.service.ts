@@ -3,7 +3,7 @@ import { Role, Specialty } from "../../../generated/prisma/client";
 import AppError from "../../errorHelpers/AppError";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-import { ICreateAdmin, ICreateDoctorPayload } from "./user.interface";
+import { ICreateAdmin, ICreateDoctorPayload, ICreateSuperAdmin } from "./user.interface";
 
 const createDoctor = async (payload: ICreateDoctorPayload) => {
   const specialties: Specialty[] = [];
@@ -203,7 +203,79 @@ const createAdmin = async (payload: ICreateAdmin) => {
   }
 };
 
+const createSuperAdmin = async (payload: ICreateSuperAdmin) => {
+  const userExists = await prisma.user.findUnique({
+    where: {
+      email: payload.superAdmin.email,
+    },
+  });
+  if (userExists) {
+    throw new AppError(status.CONFLICT, "User with this email already exists");
+  }
+
+  const userData = await auth.api.signUpEmail({
+    body: {
+      email: payload.superAdmin.email,
+      password: payload.password,
+      role: Role.SUPER_ADMIN,
+      name: payload.superAdmin.name,
+      needPasswordChange: true,
+      rememberMe: false,
+    },
+  });
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const superAdminData = await tx.superAdmin.create({
+        data: {
+          userId: userData.user.id,
+          ...payload.superAdmin,
+        },
+      });
+
+      const createdSuperAdmin = await tx.superAdmin.findUnique({
+        where: {
+          id: superAdminData.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhoto: true,
+          contactNumber: true,
+          isDeleted: true,
+          deletedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true,
+              status: true,
+              emailVerified: true,
+            },
+          },
+        },
+      });
+
+      return createdSuperAdmin;
+    });
+
+    return result;
+  } catch (error) {
+    await prisma.user.delete({
+      where: {
+        id: userData.user.id,
+      },
+    });
+    throw error;
+  }
+};
+
 export const UserService = {
   createDoctor,
   createAdmin,
+  createSuperAdmin,
 };
