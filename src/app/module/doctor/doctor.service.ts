@@ -2,6 +2,7 @@ import status from "http-status";
 import AppError from "../../errorHelpers/AppError";
 import { prisma } from "../../lib/prisma";
 import { IUpdateDoctor } from "./doctor.interface";
+import { UserStatus } from "../../../generated/prisma/browser";
 
 const getAllDoctors = async () => {
   const doctors = await prisma.doctor.findMany({
@@ -66,7 +67,6 @@ const getDoctorById = async (id: string) => {
 };
 
 const updateDoctor = async (id: string, payload: IUpdateDoctor) => {
-  
   const existingDoctor = await prisma.doctor.findUnique({
     where: { id, isDeleted: false },
   });
@@ -74,8 +74,6 @@ const updateDoctor = async (id: string, payload: IUpdateDoctor) => {
   if (!existingDoctor) {
     throw new AppError(status.NOT_FOUND, "Doctor not found");
   }
-
-
 
   // Separate specialties from doctor data
   const { specialties, ...doctorData } = payload;
@@ -144,16 +142,44 @@ const softDeleteDoctor = async (id: string) => {
     throw new AppError(status.NOT_FOUND, "Doctor not found");
   }
 
-  if(existingDoctor.isDeleted) {
+  if (existingDoctor.isDeleted) {
     throw new AppError(status.BAD_REQUEST, "Doctor is already deleted");
   }
 
-  const deletedDoctor = await prisma.doctor.update({
-    where: { id },
-    data: { isDeleted: true, deletedAt: new Date() },
+  // const deletedDoctor = await prisma.doctor.update({
+  //   where: { id },
+  //   data: { isDeleted: true, deletedAt: new Date(), status: UserStatus.DELETED },
+  // });
+
+  await prisma.$transaction(async (tx) => {
+    await tx.doctor.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        status: UserStatus.DELETED,
+      },
+    });
+
+    await tx.session.deleteMany({
+      where: { userId: existingDoctor.userId },
+    });
+
+    await tx.doctorSpecialty.deleteMany({
+      where: { doctorId: id },
+    });
+
+    await tx.appointment.deleteMany({
+      where: { doctorId: id },
+    });
+
+    await tx.doctorSchedules.deleteMany({
+      where: { doctorId: id },
+    });
+
   });
 
-  return deletedDoctor;
+  return { message: "Doctor deleted successfully" };
 };
 
 export const DoctorService = {

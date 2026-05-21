@@ -10,5 +10,6 @@ const router = Router();
 router.get("/", checkAuth(Role.SUPER_ADMIN), AdminController.getAllAdmins);
 router.get("/:id", checkAuth(Role.SUPER_ADMIN, Role.ADMIN), AdminController.getAdminById);
 router.patch("/:id", checkAuth(Role.SUPER_ADMIN),validateRequest(updateAdminZodSchema), AdminController.updateAdmin);
+router.delete("/:id", checkAuth(Role.SUPER_ADMIN), AdminController.deleteAdmin);
 
 export const AdminRoutes = router;

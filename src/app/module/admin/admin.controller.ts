@@ -3,6 +3,7 @@ import { catchAsync } from "../../shared/catchAsync";
 import { AdminService } from "./admin.service";
 import { sendResponse } from "../../shared/sendResponse";
 import status from "http-status";
+import { IRequestUser } from "../../interface/requestUser.interface";
 
 const getAllAdmins = catchAsync(async (req: Request, res: Response) => {
   const result = await AdminService.getAllAdmins();
@@ -37,8 +38,22 @@ const updateAdmin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteAdmin = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const user = req.user as IRequestUser;
+
+    const result = await AdminService.deleteAdmin(id as string, user);
+    sendResponse(res, {
+        httpStatusCode: status.OK,
+        success: true,
+        message: "Admin deleted successfully",
+        data: result,
+    });
+});
+
 export const AdminController = {
   getAllAdmins,
   getAdminById,
   updateAdmin,
+  deleteAdmin,
 };
