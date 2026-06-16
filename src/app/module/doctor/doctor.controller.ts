@@ -3,20 +3,21 @@ import status from "http-status";
 import { catchAsync } from "../../shared/catchAsync";
 import { sendResponse } from "../../shared/sendResponse";
 import { DoctorService } from "./doctor.service";
+import { IQueryParams } from "../../interface/query.interface";
 
-const getAllDoctors = catchAsync(
-    async (req: Request, res: Response) => {
+const getAllDoctors = catchAsync(async (req: Request, res: Response) => {
+  const query = req.query;
 
-        const result = await DoctorService.getAllDoctors();
+  const result = await DoctorService.getAllDoctors(query as IQueryParams);
 
-        sendResponse(res, {
-            httpStatusCode: status.OK,
-            success: true,
-            message: "Doctors fetched successfully",
-            data: result,
-        })
-    }
-);
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Doctors fetched successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
 
 const getDoctorById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -52,16 +53,16 @@ const softDeleteDoctor = catchAsync(async (req: Request, res: Response) => {
     success: true,
     message: "Doctor deleted successfully",
     data: {
-        id: result.id,
-        isDeleted: result.isDeleted,
-        deletedAt: result.deletedAt,
+      id: result.id,
+      isDeleted: result.isDeleted,
+      deletedAt: result.deletedAt,
     },
   });
 });
 
 export const DoctorController = {
-    getAllDoctors,
-    getDoctorById,
-    updateDoctor,
-    softDeleteDoctor,
+  getAllDoctors,
+  getDoctorById,
+  updateDoctor,
+  softDeleteDoctor,
 };

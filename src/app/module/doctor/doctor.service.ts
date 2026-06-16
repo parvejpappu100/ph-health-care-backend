@@ -2,38 +2,73 @@ import status from "http-status";
 import AppError from "../../errorHelpers/AppError";
 import { prisma } from "../../lib/prisma";
 import { IUpdateDoctor } from "./doctor.interface";
-import { UserStatus } from "../../../generated/prisma/browser";
+import { Doctor, Prisma, UserStatus } from "../../../generated/prisma/browser";
+import { doctorFilterableFields, doctorIncludeConfig, doctorSearchableFields } from "./doctor.constant";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interface/query.interface";
 
-const getAllDoctors = async () => {
-  const doctors = await prisma.doctor.findMany({
-    where: {
-      isDeleted: false,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
-          status: true,
-          needPasswordChange: true,
-        },
-      },
-      specialties: {
-        select: {
-          specialty: {
-            select: {
-              title: true,
+const getAllDoctors = async (query : IQueryParams) => {
+  // const doctors = await prisma.doctor.findMany({
+  //   where: {
+  //     isDeleted: false,
+  //   },
+  //   orderBy: {
+  //     createdAt: "desc",
+  //   },
+  //   include: {
+  //     user: {
+  //       select: {
+  //         name: true,
+  //         email: true,
+  //         image: true,
+  //         status: true,
+  //         needPasswordChange: true,
+  //       },
+  //     },
+  //     specialties: {
+  //       select: {
+  //         specialty: {
+  //           select: {
+  //             title: true,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
+  // return doctors;
+
+   const queryBuilder = new QueryBuilder<Doctor, Prisma.DoctorWhereInput, Prisma.DoctorInclude>(
+        prisma.doctor,
+        query,
+        {
+            searchableFields: doctorSearchableFields,
+            filterableFields: doctorFilterableFields,
+        }
+    )
+
+    const result = await queryBuilder
+        .search()
+        .filter()
+        .where({
+            isDeleted: false,
+        })
+        .include({
+            user: true,
+            // specialties: true,
+            specialties: {
+                include:{
+                    specialty: true
+                }
             },
-          },
-        },
-      },
-    },
-  });
-  return doctors;
+        })
+        .dynamicInclude(doctorIncludeConfig)
+        .paginate()
+        .sort()
+        .fields()
+        .execute();
+        
+    return result;
 };
 
 const getDoctorById = async (id: string) => {
@@ -179,7 +214,7 @@ const softDeleteDoctor = async (id: string) => {
 
   });
 
-  return { message: "Doctor deleted successfully" };
+  return { id, isDeleted: true, deletedAt: new Date() };
 };
 
 export const DoctorService = {
