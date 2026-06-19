@@ -87,3 +87,5 @@ export interface IQueryResult<T> {
     totalPages: number;
   };
 }
+
+
