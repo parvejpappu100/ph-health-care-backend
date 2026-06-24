@@ -28,7 +28,6 @@ const bookAppointment = async (
       isDeleted: false,
     },
   });
-
   const scheduleData = await prisma.schedule.findUniqueOrThrow({
     where: {
       id: payload.scheduleId,
@@ -43,6 +42,13 @@ const bookAppointment = async (
       },
     },
   });
+
+  if (doctorSchedule.isBooked) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "This schedule is already booked, please choose another schedule",
+    );
+  }
 
   const videoCallingId = String(uuidv7());
 
@@ -296,6 +302,13 @@ const bookAppointmentWithPayLater = async (
       },
     },
   });
+
+  if (doctorSchedule.isBooked) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "This schedule is already booked, please choose another schedule",
+    );
+  }
 
   const videoCallingId = String(uuidv7());
 
